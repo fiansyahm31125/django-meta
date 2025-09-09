@@ -1,0 +1,8 @@
+### Test POST request with dummy Y-M data
+POST http://127.0.0.1:8000/langchain/send-whatsapp
+Content-Type: application/json
+
+{
+    "to": "6285730794876",
+    "message": "kamu tempat tinggalnya dimana?"
+}

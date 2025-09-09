@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="chat-container">
+        <div class="chat-messages">
+            {% for chat in chathistorys %}
+                {% if chat.role == 'user' %}
+                    <div class="flex justify-end">
+                        <div class="message-bubble sender-message">
+                            <p>{{ chat.message }}</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="flex justify-start">
+                        <div class="message-bubble receiver-message">
+                            <p>{{ chat.message }}</p>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        <form method="POST" class="chat-form">
+            {% csrf_token %}
+            <input type="text" name="user_message" placeholder="Ketik pesan Anda..." class="chat-input">
+            <button type="submit" class="chat-button">Kirim</button>
+        </form>
+    </div>
+{% endblock %}

@@ -1,0 +1,9 @@
+### Test POST request with dummy Y-M data
+POST http://127.0.0.1:8000/langchain/index
+Content-Type: application/json
+
+{
+    "session_id": "user123",
+    "prompt": "who am i?",
+    "image": null
+}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1 class="text-5xl text-center">Listchat Customer</h1>
+    <ul class="text-center w-full mt-6">
+        {% for user in listchats %}
+        <li class="my-2 bg-blue-500 rounded-lg min-h-10 text-white">
+            <a href="/langchain/conversation/{{user}}">{{user}}</a>
+        </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

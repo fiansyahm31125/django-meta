@@ -1,0 +1,14 @@
+pip install django
+
+make venv
+python -m venv venv
+
+venv\Script\Activate
+
+/make site
+    django-admin startproject mysite 
+
+/make app
+python manage.py startapp mylangchain
+
+

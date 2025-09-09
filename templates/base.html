@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <!-- Bootstrap CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        .grid-item {
+            @apply h-40 border-2 border-gray-500 flex justify-center items-center bg-gray-100 rounded-xl;
+        }
+
+        .grid-item-bold {
+            @apply h-40 border-2 border-gray-500 flex justify-center items-center bg-gray-100 rounded-xl font-bold; /* Hapus tanda titik di depan 'grid-item' */
+        }
+
+        @layer components {
+            .chat-container {
+                @apply flex flex-col h-screen bg-gray-50;
+            }
+            .chat-messages {
+                @apply flex-1 p-4 overflow-y-auto space-y-4;
+            }
+            .message-bubble {
+                @apply max-w-sm p-3 rounded-lg shadow-sm;
+            }
+            .sender-message {
+                @apply ml-auto bg-teal-100 text-gray-800;
+            }
+            .receiver-message {
+                @apply mr-auto bg-white text-gray-800;
+            }
+            .chat-form {
+                @apply p-4 bg-white flex items-center gap-2 border-t border-gray-200;
+            }
+            .chat-input {
+                @apply flex-1 p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500;
+            }
+            .chat-button {
+                @apply bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-purple-500 md:bg-red-500 lg:bg-gray-500 border-violet-500 border-x-2">
+        <div class="sm:flex justify-between container mx-auto py-5">
+            <a href="/" class="text-white text-5xl font-thin text-red-900 text-center">Welcome to Django App!</a>
+            <ul class="flex text-white space-x-10 mt-5 sm:mt-0">
+                <li>
+                    <a href="/finnet/index">Data Finnet</a>
+                </li>
+                 <li>
+                    <a href="/langchain/list-conversation">Chat WA</a>
+                </li>
+                <li>
+                    Lainnya
+                </li>
+            </ul>
+        </div>
+    </div>
+    {% block content %}{% endblock %}
+</body>
+</html>
+
+<!-- https://www.youtube.com/watch?v=4B9XYXCBYkA responsivitas -->

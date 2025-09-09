@@ -1,0 +1,70 @@
+### Test POST request with dummy Y-M data
+POST http://127.0.0.1:8000/forecast/sarima
+Content-Type: application/json
+
+[
+  {
+    "periode": "202403",
+    "qty": 3
+  },
+  {
+    "periode": "202404",
+    "qty": 4
+  },
+  {
+    "periode": "202405",
+    "qty": 3
+  },
+  {
+    "periode": "202406",
+    "qty": 2
+  },
+  {
+    "periode": "202407",
+    "qty": 1
+  },
+  {
+    "periode": "202408",
+    "qty": 2
+  },
+  {
+    "periode": "202409",
+    "qty": 3
+  },
+  {
+    "periode": "202410",
+    "qty": 4
+  },
+  {
+    "periode": "202411",
+    "qty": 3
+  },
+  {
+    "periode": "202412",
+    "qty": 2
+  },
+  {
+    "periode": "202501",
+    "qty": 1
+  },
+  {
+    "periode": "202502",
+    "qty": 2
+  },
+  {
+    "periode": "202503",
+    "qty": 3
+  },
+  {
+    "periode": "202504",
+    "qty": 4
+  },
+  {
+    "periode": "202505",
+    "qty": 3
+  },
+  {
+    "periode": "202506",
+    "qty": 2
+  }
+]

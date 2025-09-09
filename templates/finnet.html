@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-4 md:p-8">
+    <h1 class="text-3xl font-bold mb-6 text-center">Laporan QRIS Juli 2025</h1>
+
+    <form method="post" class="mb-8">
+        {% csrf_token %}
+        <div class="flex flex-wrap items-end gap-4">
+            <div>
+                <label for="startdate" class="block text-sm font-medium text-gray-700">Start Date:</label>
+                <input type="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" id="startdate" name="startdate" required>
+            </div>
+            <div>
+                <label for="enddate" class="block text-sm font-medium text-gray-700">End Date:</label>
+                <input type="date" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" id="enddate" name="enddate" required>
+            </div>
+            <div>
+                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Tampilkan Data</button>
+            </div>
+        </div>
+    </form>
+
+    {% if df_data %}
+    <div class="mt-8">
+        <h2 class="text-2xl font-semibold mb-4">Data yang Difilter</h2>
+        <div class="overflow-x-auto shadow-md rounded-lg">
+            <table id="myTable" class="min-w-full divide-y divide-gray-200 border border-gray-300">
+                <thead class="bg-gray-50">
+                    <tr>
+                        {% for header in df_data.0 %}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ header }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for row in df_data %}
+                    <tr>
+                        {% for key, value in row.items %}
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-center text-gray-500 mt-8">Silakan masukkan rentang tanggal dan klik "Tampilkan Data".</p>
+    {% endif %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#myTable').DataTable();
+    });
+</script>
+{% endblock %}
