@@ -34,6 +34,8 @@ def langchain(request):
             prompt_text = data.get('prompt')
             image = data.get('image')
             session_id = data.get('session_id', 'default')
+            type=data.get('type')
+            mime_type=data.get('mime_type')
 
             if not prompt_text:
                 return JsonResponse({'error': 'Prompt not found in request body'}, status=400)
@@ -70,9 +72,9 @@ def langchain(request):
                 message = HumanMessage(content=[
                     {"type": "text", "text": prompt_text},
                     {
-                        "type": "image",
+                        "type": type,
                         "source_type": "base64",
-                        "mime_type": "image/jpeg", # ganti sesuai jenis gambar
+                        "mime_type": mime_type, # ganti sesuai jenis gambar
                         "data": image,
                     }
                 ])
@@ -172,6 +174,7 @@ def get_whatsapp(request):
 
                 message_body=None
                 base64_image=None
+                mime_type=None
 
                 if message_type == 'text':
                     # Jika pesan adalah teks, ambil 'body'
@@ -181,15 +184,14 @@ def get_whatsapp(request):
                     # Jika pesan adalah gambar, ambil 'id' dan 'caption'
                     media_id = message_info['image']['id']
                     caption = message_info['image'].get('caption', 'Tidak ada caption')
+                    mime_type = message_info['image'].get('mime_type', 'image/jpeg')
                     
                     print(f"Pesan gambar baru dari {from_id} dengan Media ID: {media_id}")
                     print(f"Caption: {caption}")
                     # Unduh gambar menggunakan fungsi helper
                     base64_image=read_image(media_id)
                     if base64_image != None:
-                        message_body="Coba Pahami gambar ini dan respon jawabannya ke customer gimana berdasar chat sebelumnya,buat jawabannya singkat,padat,,pilih 1 opsi saja!,Customer service:....."
-
-                
+                        message_body="Coba Pahami gambar ini dan respon jawabannya ke customer gimana berdasar chat sebelumnya,buat jawabannya singkat,padat,,pilih 1 opsi saja!,Customer service:....." 
                 elif message_type == 'document':
                     media_id = message_info['document']['id']
                     mime_type = message_info['document'].get('mime_type', 'application/octet-stream')
@@ -198,26 +200,33 @@ def get_whatsapp(request):
                     print(f"Pesan dokumen baru dari {from_id} dengan Media ID: {media_id}")
                     print(f"Filename: {filename}, MimeType: {mime_type}")
 
-                    # ✅ Unduh file (base64)
-                    base64_doc = read_image(media_id)  
+                    base64_image=read_image(media_id)
+                    if base64_image != None:
+                        message_body="Coba Pahami gambar ini dan respon jawabannya ke customer gimana berdasar chat sebelumnya,buat jawabannya singkat,padat,,pilih 1 opsi saja!,Customer service:....." 
 
-                    # ✅ Simpan file sementara
-                    file_path = os.path.join(settings.MEDIA_ROOT, filename)
-                    with open(file_path, "wb") as f:
-                        f.write(base64.b64decode(base64_doc))
 
-                    # ✅ Konversi dokumen ke teks
-                    extracted_text = extract_text_from_document(file_path, mime_type)
+                    # # ✅ Unduh file (base64)
+                    # base64_doc = read_image(media_id)  
 
-                    print(f"Teks hasil ekstraksi: {extracted_text[:200]}...")
+                    # # ✅ Simpan file sementara
+                    # file_path = os.path.join(settings.MEDIA_ROOT, filename)
+                    # with open(file_path, "wb") as f:
+                    #     f.write(base64.b64decode(base64_doc))
 
-                    if extracted_text!=None:
-                        message_body=extracted_text
+                    # # ✅ Konversi dokumen ke teks
+                    # extracted_text = extract_text_from_document(file_path, mime_type)
+
+                    # print(f"Teks hasil ekstraksi: {extracted_text[:200]}...")
+
+                    # if extracted_text!=None:
+                    #     message_body=extracted_text
 
                 question={
                     "session_id": from_id,
                     "prompt": message_body,
-                    "image": base64_image
+                    "image": base64_image,
+                    "type":message_type,
+                    "mime_type":mime_type
                 }
                 response=requests.post("http://127.0.0.1:8000/langchain/index", json=question)
 
