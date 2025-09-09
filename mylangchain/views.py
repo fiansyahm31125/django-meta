@@ -16,11 +16,14 @@ from langchain.schema import HumanMessage
 from .models import ChatHistory
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.conf import settings
 
 import easyocr
 import base64
 from io import BytesIO
 from PIL import Image
+import docx
+from PyPDF2 import PdfReader
 
 
 @csrf_exempt
@@ -99,9 +102,10 @@ def langchain(request):
 
 
 # Token akses harus disimpan di environment variables untuk keamanan
-ACCESS_TOKEN = 'EAAIOgPPHbKwBPZAaA8CZCVIIZAHL1NZCrMOuNV208CTCi88h6la7kqw4WiZCF6IPVWvzXGXQyTOXLCMRAIZBD9IHKLZAjKdfZAkbGF3XdgYvZASrwjE6jqtr8JxtYog0bCGT2DGWisNjzDLFlo5pK6KpavDIIGzwkt5IZAZBYri6fjkLGFGWZALuzIUy8AcmW9h8z8QTex241hECSgjxfRcZC5rrmXiKjbWIgwacedc0uYKXPvsZBjcwZDZD'
+GRAPH_API_TOKEN = 'EAAIOgPPHbKwBPfpf5ZCSRZA5JB1mCCOQj3oalZAUdItaHZCqxQ4B1c2h5f1FD1nZBRZAFsN8ZA3WfpHaqfrfVs4Ezne2PRuy7d0ciUEQeE8BPER707G9njyCX5q3f9MRvT0zmXkVEwGY6Kb6pRLBo95TrRQ99ZB2F3rVd7pxYKDvA93kn3PWEFZCYpqJBP2RumRL235bySlUajPWqs5T9kbQCli4xr81iUnF3yM24xrjixhsZD'
 PHONE_NUMBER_ID = '809841558871302'
 WHATSAPP_API_URL = f"https://graph.facebook.com/v22.0/{PHONE_NUMBER_ID}/messages"
+WEBHOOK_VERIFY_TOKEN="arif"
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -127,7 +131,7 @@ def send_whatsapp(request):
         }
         
         headers = {
-            'Authorization': f'Bearer {ACCESS_TOKEN}',
+            'Authorization': f'Bearer {GRAPH_API_TOKEN}',
             'Content-Type': 'application/json'
         }
 
@@ -147,12 +151,12 @@ def send_whatsapp(request):
 @csrf_exempt
 def get_whatsapp(request):
     if request.method == 'GET':
-        VERIFY_TOKEN = 'arif'  # Ganti dengan token yang sama di dashboard WhatsApp
         mode = request.GET.get('hub.mode')
         token = request.GET.get('hub.verify_token')
         challenge = request.GET.get('hub.challenge')
+        print("Connecting Process")
 
-        if mode and token and mode == 'subscribe' and token == VERIFY_TOKEN:
+        if mode and token and mode == 'subscribe' and token == WEBHOOK_VERIFY_TOKEN:
             return HttpResponse(challenge, status=200)
         else:
             return HttpResponse('Token verifikasi tidak valid', status=403)
@@ -162,11 +166,13 @@ def get_whatsapp(request):
             # Logika untuk memproses pesan WhatsApp
             if 'entry' in data and data['entry'][0]['changes'][0]['value']['messages']:
                 message_info = data['entry'][0]['changes'][0]['value']['messages'][0]
+                print(f"Isi message Info/Data: {message_info}")
                 from_id = message_info['from']
                 message_type = message_info['type']
 
                 message_body=None
-                base64=None
+                base64_image=None
+
                 if message_type == 'text':
                     # Jika pesan adalah teks, ambil 'body'
                     message_body = message_info['text']['body']
@@ -178,19 +184,40 @@ def get_whatsapp(request):
                     
                     print(f"Pesan gambar baru dari {from_id} dengan Media ID: {media_id}")
                     print(f"Caption: {caption}")
-
                     # Unduh gambar menggunakan fungsi helper
-                    base64=read_image(media_id)
+                    base64_image=read_image(media_id)
+                    if base64_image != None:
+                        message_body="Coba Pahami gambar ini dan respon jawabannya ke customer gimana berdasar chat sebelumnya,buat jawabannya singkat,padat,,pilih 1 opsi saja!,Customer service:....."
 
-                # if ocr_text != None:
-                #     message_body="Menerima gambar dengan deskripsi:"+ocr_text+",Caption:"+caption
-                if base64 != None:
-                    message_body="Coba Pahami gambar ini dan respon jawabannya ke customer gimana berdasar chat sebelumnya,buat jawabannya singkat,padat,,pilih 1 opsi saja!,Customer service:....."
+                
+                elif message_type == 'document':
+                    media_id = message_info['document']['id']
+                    mime_type = message_info['document'].get('mime_type', 'application/octet-stream')
+                    filename = message_info['document'].get('filename', 'unknown')
+
+                    print(f"Pesan dokumen baru dari {from_id} dengan Media ID: {media_id}")
+                    print(f"Filename: {filename}, MimeType: {mime_type}")
+
+                    # ✅ Unduh file (base64)
+                    base64_doc = read_image(media_id)  
+
+                    # ✅ Simpan file sementara
+                    file_path = os.path.join(settings.MEDIA_ROOT, filename)
+                    with open(file_path, "wb") as f:
+                        f.write(base64.b64decode(base64_doc))
+
+                    # ✅ Konversi dokumen ke teks
+                    extracted_text = extract_text_from_document(file_path, mime_type)
+
+                    print(f"Teks hasil ekstraksi: {extracted_text[:200]}...")
+
+                    if extracted_text!=None:
+                        message_body=extracted_text
 
                 question={
                     "session_id": from_id,
                     "prompt": message_body,
-                    "image": base64
+                    "image": base64_image
                 }
                 response=requests.post("http://127.0.0.1:8000/langchain/index", json=question)
 
@@ -204,7 +231,7 @@ def get_whatsapp(request):
                 }
             
             headers = {
-                'Authorization': f'Bearer {ACCESS_TOKEN}',
+                'Authorization': f'Bearer {GRAPH_API_TOKEN}',
                 'Content-Type': 'application/json'
             }
 
@@ -260,7 +287,7 @@ def conversation(request,user):
                 }
             }
             headers = {
-                'Authorization': f'Bearer {ACCESS_TOKEN}',
+                'Authorization': f'Bearer {GRAPH_API_TOKEN}',
                 'Content-Type': 'application/json'
             }
 
@@ -315,7 +342,7 @@ def read_image(media_id):
     Mengunduh gambar dari WhatsApp API menggunakan media_id.
     """
     headers = {
-        "Authorization": f"Bearer {ACCESS_TOKEN}"
+        "Authorization": f"Bearer {GRAPH_API_TOKEN}"
     }
     
     try:
@@ -352,6 +379,23 @@ def read_image(media_id):
         print(f"Kesalahan HTTP saat mengunduh gambar: {err}")
     except Exception as e:
         print(f"Kesalahan umum saat mengunduh gambar: {e}")
+
+
+def extract_text_from_document(file_path, mime_type):
+    if mime_type == 'application/pdf':
+        # Ekstraksi PDF
+        with open(file_path, "rb") as pdf_file:
+            reader = PdfReader(pdf_file)
+            return "\n".join(page.extract_text() for page in reader.pages if page.extract_text())
+    elif mime_type in ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword']:
+        # Ekstraksi DOCX
+        doc = docx.Document(file_path)
+        return "\n".join([p.text for p in doc.paragraphs])
+    elif mime_type == 'text/plain':
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    else:
+        return None
 
 def list_conversation(request):
     if request.method == "GET":
