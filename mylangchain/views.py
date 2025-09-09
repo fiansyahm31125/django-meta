@@ -104,7 +104,7 @@ def langchain(request):
 
 
 # Token akses harus disimpan di environment variables untuk keamanan
-GRAPH_API_TOKEN = 'EAAIOgPPHbKwBPfpf5ZCSRZA5JB1mCCOQj3oalZAUdItaHZCqxQ4B1c2h5f1FD1nZBRZAFsN8ZA3WfpHaqfrfVs4Ezne2PRuy7d0ciUEQeE8BPER707G9njyCX5q3f9MRvT0zmXkVEwGY6Kb6pRLBo95TrRQ99ZB2F3rVd7pxYKDvA93kn3PWEFZCYpqJBP2RumRL235bySlUajPWqs5T9kbQCli4xr81iUnF3yM24xrjixhsZD'
+GRAPH_API_TOKEN = 'EAAIOgPPHbKwBPX9P9rlNN5Jwx680De4gD02KcZCjHIATSggOLXjGIuunAmQnAlyZA4wIkfIBrruZCkZClAGmZCkN5JcUlg8YsKTNyfhRtEFWS6h75ZCN5ZAJVsKQK9qvg7K7S7yGnCoxGklPEiC8nRLbZA0j66oWXbpMQMpOnZCVTVgFB87NX7ZBj7QSeA6CAsQ7yDqhv2vf8luyrI0DR9MKy8jFOw8kaH4tmxsHcRDJtxhQZDZD'
 PHONE_NUMBER_ID = '809841558871302'
 WHATSAPP_API_URL = f"https://graph.facebook.com/v22.0/{PHONE_NUMBER_ID}/messages"
 WEBHOOK_VERIFY_TOKEN="arif"
@@ -199,27 +199,26 @@ def get_whatsapp(request):
 
                     print(f"Pesan dokumen baru dari {from_id} dengan Media ID: {media_id}")
                     print(f"Filename: {filename}, MimeType: {mime_type}")
-
-                    base64_image=read_image(media_id)
-                    if base64_image != None:
-                        message_body="Coba Pahami gambar ini dan respon jawabannya ke customer gimana berdasar chat sebelumnya,buat jawabannya singkat,padat,,pilih 1 opsi saja!,Customer service:....." 
+                    base64_doc=read_image(media_id)
 
 
-                    # # ✅ Unduh file (base64)
-                    # base64_doc = read_image(media_id)  
+                    # if base64_image != None:
+                    #     message_body="Coba Pahami gambar ini dan respon jawabannya ke customer gimana berdasar chat sebelumnya,buat jawabannya singkat,padat,,pilih 1 opsi saja!,Customer service:....." 
 
-                    # # ✅ Simpan file sementara
-                    # file_path = os.path.join(settings.MEDIA_ROOT, filename)
-                    # with open(file_path, "wb") as f:
-                    #     f.write(base64.b64decode(base64_doc))
 
-                    # # ✅ Konversi dokumen ke teks
-                    # extracted_text = extract_text_from_document(file_path, mime_type)
+                    # ✅ Unduh file (base64)
+                    # ✅ Simpan file sementara
+                    file_path = os.path.join(settings.MEDIA_ROOT, filename)
+                    with open(file_path, "wb") as f:
+                        f.write(base64.b64decode(base64_doc))
 
-                    # print(f"Teks hasil ekstraksi: {extracted_text[:200]}...")
+                    # ✅ Konversi dokumen ke teks
+                    extracted_text = extract_text_from_document(file_path, mime_type)
 
-                    # if extracted_text!=None:
-                    #     message_body=extracted_text
+                    print(f"Teks hasil ekstraksi: {extracted_text[:200]}...")
+
+                    if extracted_text!=None:
+                        message_body=extracted_text
 
                 question={
                     "session_id": from_id,
